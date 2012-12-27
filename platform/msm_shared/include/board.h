@@ -40,6 +40,7 @@ struct board_data {
 	uint32_t baseband;
 	uint32_t pmic_type;
 	uint32_t pmic_version;
+	uint32_t tb_hw_platform;
 };
 
 void board_init();
