@@ -5,5 +5,6 @@ INCLUDES += -I$(LK_TOP_DIR)/platform/msm_shared/include
 OBJS += \
 	$(LOCAL_DIR)/aboot.o \
 	$(LOCAL_DIR)/fastboot.o \
-	$(LOCAL_DIR)/recovery.o
+	$(LOCAL_DIR)/recovery.o \
+	$(LOCAL_DIR)/tb_boot.o
 

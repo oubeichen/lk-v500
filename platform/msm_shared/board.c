@@ -31,6 +31,7 @@
 #include <board.h>
 #include <smem.h>
 #include <baseband.h>
+#include <tb_platform.h>
 
 static struct board_data board = {UNKNOWN,
 	HW_PLATFORM_UNKNOWN,
@@ -38,6 +39,7 @@ static struct board_data board = {UNKNOWN,
 	LINUX_MACHTYPE_UNKNOWN,
 	BASEBAND_MSM,
 	PMIC_IS_INVALID,
+	0,
 	0};
 
 static void platform_detect()
@@ -82,6 +84,7 @@ static void platform_detect()
 		board.platform_subtype = board_info_v7.platform_subtype;
 		board.pmic_type = board_info_v7.pmic_type;
 		board.pmic_version = board_info_v7.pmic_version;
+		board.tb_hw_platform =  board_info_v7.tb_hw_platform;
 	}
 	else
 	{
@@ -126,3 +129,19 @@ uint32_t board_pmic_ver()
 {
 	return board.pmic_version;
 }
+
+int32_t tb_platform_get_version()
+{
+	return board.tb_hw_platform;
+}
+
+int32_t machine_is_msm8x30_type1()
+{
+	return (board.tb_hw_platform == TB_HW_PLATFORM_TYPE1);
+}
+
+int32_t machine_is_msm8x30_type2()
+{
+	return (board.tb_hw_platform == TB_HW_PLATFORM_TYPE2);
+}
+
