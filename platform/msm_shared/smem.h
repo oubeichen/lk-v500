@@ -131,7 +131,9 @@ struct smem_board_info_v7 {
 	unsigned platform_subtype;
 	unsigned pmic_type;
 	unsigned pmic_version;
-	unsigned buffer_align;	//Need for 8 bytes alignment while reading from shared memory.
+//	unsigned buffer_align;	//Need for 8 bytes alignment while reading from shared memory.
+
+	unsigned tb_hw_platform;
 };
 
 typedef struct {

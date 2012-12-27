@@ -63,6 +63,7 @@
 #include "board.h"
 
 #include "scm.h"
+#include "tb_boot.h"
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -162,6 +163,8 @@ unsigned char *update_cmdline(const char * cmdline)
 	int have_cmdline = 0;
 	unsigned char *cmdline_final = NULL;
 	int pause_at_bootup = 0;
+
+	tb_add_cmdline(cmdline);
 
 	if (cmdline && cmdline[0]) {
 		cmdline_len = strlen(cmdline);
