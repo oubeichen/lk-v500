@@ -53,4 +53,8 @@ uint32_t board_hardware_id();
 uint32_t board_pmic_type();
 uint32_t board_pmic_ver();
 
+extern char gb_hw_platform_buf[6];
+extern int gbc_tb_hw_platform_num;
+
+
 #endif

@@ -33,6 +33,9 @@
 #include <baseband.h>
 #include <tb_platform.h>
 
+char gb_hw_platform_buf[6];
+int gbc_tb_hw_platform_num;
+
 static struct board_data board = {UNKNOWN,
 	HW_PLATFORM_UNKNOWN,
 	HW_PLATFORM_SUBTYPE_UNKNOWN,
@@ -85,6 +88,7 @@ static void platform_detect()
 		board.pmic_type = board_info_v7.pmic_type;
 		board.pmic_version = board_info_v7.pmic_version;
 		board.tb_hw_platform =  board_info_v7.tb_hw_platform;
+		gbc_tb_hw_platform_num = board_info_v7.tb_hw_platform_num;
 	}
 	else
 	{
@@ -98,6 +102,8 @@ void board_init()
 	platform_detect();
 	target_detect(&board);
 	target_baseband_detect(&board);
+
+	sprintf(gb_hw_platform_buf, "%d", gbc_tb_hw_platform_num);
 }
 
 uint32_t board_platform_id(void)
