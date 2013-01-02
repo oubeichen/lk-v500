@@ -138,6 +138,8 @@ struct atag_ptbl_entry
 
 char sn_buf[13];
 
+extern char gb_hw_platform_buf[6];
+
 extern int emmc_recovery_init(void);
 
 #if NO_KEYPAD_DRIVER
@@ -163,6 +165,9 @@ unsigned char *update_cmdline(const char * cmdline)
 	int have_cmdline = 0;
 	unsigned char *cmdline_final = NULL;
 	int pause_at_bootup = 0;
+
+        strcat(cmdline, " tb_hw_adc=");
+        strcat(cmdline, gb_hw_platform_buf);
 
 	tb_add_cmdline(cmdline);
 
