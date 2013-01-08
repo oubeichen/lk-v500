@@ -138,7 +138,7 @@ struct atag_ptbl_entry
 
 char sn_buf[13];
 
-extern char gb_hw_platform_buf[6];
+extern char tb_hw_platform_num_buf[6];
 
 extern int emmc_recovery_init(void);
 
@@ -167,7 +167,7 @@ unsigned char *update_cmdline(const char * cmdline)
 	int pause_at_bootup = 0;
 
         strcat(cmdline, " tb_hw_adc=");
-        strcat(cmdline, gb_hw_platform_buf);
+        strcat(cmdline, tb_hw_platform_num_buf);
 
 	tb_add_cmdline(cmdline);
 
