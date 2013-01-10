@@ -31,10 +31,10 @@
 #include <board.h>
 #include <smem.h>
 #include <baseband.h>
-#include <tb_platform.h>
+#include <qrd_tablet_platform.h>
 
-char tb_hw_platform_num_buf[6];
-int  tb_hw_platform_num_tmp;
+char qrd_tablet_hw_platform_adc_num_buf[6];
+int  qrd_tablet_hw_platform_adc_num_tmp;
 
 static struct board_data board = {UNKNOWN,
 	HW_PLATFORM_UNKNOWN,
@@ -87,8 +87,8 @@ static void platform_detect()
 		board.platform_subtype = board_info_v7.platform_subtype;
 		board.pmic_type = board_info_v7.pmic_type;
 		board.pmic_version = board_info_v7.pmic_version;
-		board.tb_hw_platform =  board_info_v7.tb_hw_platform;
-		tb_hw_platform_num_tmp = board_info_v7.tb_hw_platform_num;
+		board.qrd_tablet_hw_platform =  board_info_v7.qrd_tablet_hw_platform;
+		qrd_tablet_hw_platform_adc_num_tmp = board_info_v7.qrd_tablet_hw_platform_adc_num;
 	}
 	else
 	{
@@ -103,7 +103,7 @@ void board_init()
 	target_detect(&board);
 	target_baseband_detect(&board);
 
-	sprintf(tb_hw_platform_num_buf, "%d", tb_hw_platform_num_tmp);
+	sprintf(qrd_tablet_hw_platform_adc_num_buf, "%d", qrd_tablet_hw_platform_adc_num_tmp);
 }
 
 uint32_t board_platform_id(void)
@@ -136,18 +136,18 @@ uint32_t board_pmic_ver()
 	return board.pmic_version;
 }
 
-int32_t tb_platform_get_version()
+int32_t qrd_tablet_platform_get_version()
 {
-	return board.tb_hw_platform;
+	return board.qrd_tablet_hw_platform;
 }
 
 int32_t machine_is_msm8x30_type1()
 {
-	return (board.tb_hw_platform == TB_HW_PLATFORM_TYPE1);
+	return (board.qrd_tablet_hw_platform == QRD_TABLET_HW_PLATFORM_TYPE1);
 }
 
 int32_t machine_is_msm8x30_type2()
 {
-	return (board.tb_hw_platform == TB_HW_PLATFORM_TYPE2);
+	return (board.qrd_tablet_hw_platform == QRD_TABLET_HW_PLATFORM_TYPE2);
 }
 
