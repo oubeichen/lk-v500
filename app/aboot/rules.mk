@@ -6,5 +6,5 @@ OBJS += \
 	$(LOCAL_DIR)/aboot.o \
 	$(LOCAL_DIR)/fastboot.o \
 	$(LOCAL_DIR)/recovery.o \
-	$(LOCAL_DIR)/tb_boot.o
+	$(LOCAL_DIR)/qrd_tablet_boot.o
 

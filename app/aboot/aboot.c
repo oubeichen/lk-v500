@@ -63,7 +63,7 @@
 #include "board.h"
 
 #include "scm.h"
-#include "tb_boot.h"
+#include "qrd_tablet_boot.h"
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -138,7 +138,7 @@ struct atag_ptbl_entry
 
 char sn_buf[13];
 
-extern char tb_hw_platform_num_buf[6];
+extern char qrd_tablet_hw_platform_adc_num_buf[6];
 
 extern int emmc_recovery_init(void);
 
@@ -166,10 +166,10 @@ unsigned char *update_cmdline(const char * cmdline)
 	unsigned char *cmdline_final = NULL;
 	int pause_at_bootup = 0;
 
-        strcat(cmdline, " tb_hw_adc=");
-        strcat(cmdline, tb_hw_platform_num_buf);
+        strcat(cmdline, " qrd_tablet_hw_adc=");
+        strcat(cmdline, qrd_tablet_hw_platform_adc_num_buf);
 
-	tb_add_cmdline(cmdline);
+	qrd_tablet_add_cmdline(cmdline);
 
 	if (cmdline && cmdline[0]) {
 		cmdline_len = strlen(cmdline);
