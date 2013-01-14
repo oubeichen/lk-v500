@@ -49,6 +49,7 @@
 #include <crypto_hash.h>
 #include <board.h>
 #include <target/board.h>
+#include <kernel/thread.h>
 
 extern void dmb(void);
 extern void msm8960_keypad_init(void);
@@ -88,6 +89,35 @@ void shutdown_device(void)
 	mdelay(5000);
 
 	dprintf(CRITICAL, "Shutdown failed.\n");
+}
+
+static int pwrkey_handler(void *arg)
+{
+	unsigned is_pwrkey_pressed = 0;
+
+	pm8921_pwrkey_status(&is_pwrkey_pressed);
+
+	while(!is_pwrkey_pressed) 
+	{
+		pm8921_pwrkey_status(&is_pwrkey_pressed);
+        	thread_sleep(200);
+    	}
+	writel(0x77665501, RESTART_REASON_ADDR);
+
+    	return 0;
+}
+
+static void pwr_key_thread_init(void)
+{
+	thread_t *thr;
+
+        thr = thread_create("pwrkey",
+                           pwrkey_handler,
+                           0,
+                           DEFAULT_PRIORITY,
+                           4096);
+
+	thread_resume(thr);
 }
 
 void target_init(void)
@@ -155,6 +185,7 @@ void target_init(void)
 			ASSERT(0);
 		}
 	}
+	pwr_key_thread_init();
 }
 
 unsigned board_machtype(void)
