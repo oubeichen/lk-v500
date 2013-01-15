@@ -100,7 +100,8 @@ static int pwrkey_handler(void *arg)
 	while(!is_pwrkey_pressed) 
 	{
 		pm8921_pwrkey_status(&is_pwrkey_pressed);
-        	thread_sleep(200);
+		if (!is_pwrkey_pressed)
+        		thread_sleep(200);
     	}
 	writel(0x77665501, RESTART_REASON_ADDR);
 
@@ -118,6 +119,23 @@ static void pwr_key_thread_init(void)
                            4096);
 
 	thread_resume(thr);
+}
+
+static unsigned target_check_power_on_reason(void)
+{
+	unsigned power_on_status = 0;
+	unsigned int status_len = sizeof(power_on_status);
+	unsigned smem_status;
+
+	smem_status = smem_read_alloc_entry(SMEM_POWER_ON_STATUS_INFO,
+					    &power_on_status, status_len);
+
+	if (smem_status) {
+		dprintf(CRITICAL,
+			"ERROR: unable to read shared memory for power on reason\n");
+	}
+	dprintf(INFO, "Power on reason %u\n", power_on_status);
+	return power_on_status;
 }
 
 void target_init(void)
@@ -185,7 +203,9 @@ void target_init(void)
 			ASSERT(0);
 		}
 	}
-	pwr_key_thread_init();
+
+	if (target_check_power_on_reason() == PWR_ON_EVENT_USB_CHG)
+		pwr_key_thread_init();
 }
 
 unsigned board_machtype(void)
@@ -201,23 +221,6 @@ crypto_engine_type board_ce_type(void)
 unsigned target_baseband()
 {
 	return board_baseband();
-}
-
-static unsigned target_check_power_on_reason(void)
-{
-	unsigned power_on_status = 0;
-	unsigned int status_len = sizeof(power_on_status);
-	unsigned smem_status;
-
-	smem_status = smem_read_alloc_entry(SMEM_POWER_ON_STATUS_INFO,
-					    &power_on_status, status_len);
-
-	if (smem_status) {
-		dprintf(CRITICAL,
-			"ERROR: unable to read shared memory for power on reason\n");
-	}
-	dprintf(INFO, "Power on reason %u\n", power_on_status);
-	return power_on_status;
 }
 
 void reboot_device(unsigned reboot_reason)
