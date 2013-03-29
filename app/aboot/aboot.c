@@ -63,7 +63,6 @@
 #include "board.h"
 
 #include "scm.h"
-#include "qrd_tablet_boot.h"
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -107,6 +106,7 @@ static const char *emmc_cmdline = " androidboot.emmc=true";
 static const char *usb_sn_cmdline = " androidboot.serialno=";
 static const char *battchg_pause = " androidboot.mode=charger";
 static const char *auth_kernel = " androidboot.authorized_kernel=true";
+static const char *board_cmdline = " androidboot.product.board=";
 
 static const char *baseband_apq     = " androidboot.baseband=apq";
 static const char *baseband_msm     = " androidboot.baseband=msm";
@@ -114,6 +114,14 @@ static const char *baseband_csfb    = " androidboot.baseband=csfb";
 static const char *baseband_svlte2a = " androidboot.baseband=svlte2a";
 static const char *baseband_mdm     = " androidboot.baseband=mdm";
 static const char *baseband_sglte   = " androidboot.baseband=sglte";
+
+const char *board_name[] = {
+	[BOARD_ID_MSM8X30_TYPE1] = "msm8x30_type1",
+	[BOARD_ID_MSM8X30_TYPE2] = "msm8x30_type2",
+	[BOARD_ID_MSM8X30_TYPE3] = "msm8x30_type3",
+	[BOARD_ID_MSM8X30_TYPE4] = "msm8x30_type4",
+	NULL
+};
 
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
@@ -137,8 +145,6 @@ struct atag_ptbl_entry
 };
 
 char sn_buf[13];
-
-extern char qrd_tablet_hw_platform_adc_num_buf[6];
 
 extern int emmc_recovery_init(void);
 
@@ -165,11 +171,6 @@ unsigned char *update_cmdline(const char * cmdline)
 	int have_cmdline = 0;
 	unsigned char *cmdline_final = NULL;
 	int pause_at_bootup = 0;
-
-        strcat(cmdline, " qrd_tablet_hw_adc=");
-        strcat(cmdline, qrd_tablet_hw_platform_adc_num_buf);
-
-	qrd_tablet_add_cmdline(cmdline);
 
 	if (cmdline && cmdline[0]) {
 		cmdline_len = strlen(cmdline);
@@ -217,6 +218,12 @@ unsigned char *update_cmdline(const char * cmdline)
 		case BASEBAND_SGLTE:
 			cmdline_len += strlen(baseband_sglte);
 			break;
+	}
+
+	if (board_id() != BOARD_ID_UNKNOWN)
+	{
+		cmdline_len += strlen(board_cmdline);
+		cmdline_len += strlen(board_name[board_id()]);
 	}
 
 	if (cmdline_len > 0) {
@@ -295,6 +302,16 @@ unsigned char *update_cmdline(const char * cmdline)
 				if (have_cmdline) --dst;
 				while ((*dst++ = *src++));
 				break;
+		}
+
+		if (board_id() != BOARD_ID_UNKNOWN)
+		{
+			src = board_cmdline;
+			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
+			src = board_name[board_id()];
+			if (have_cmdline) --dst;
+			while ((*dst++ = *src++));
 		}
 	}
 	return cmdline_final;

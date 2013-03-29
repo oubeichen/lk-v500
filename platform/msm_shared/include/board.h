@@ -32,15 +32,34 @@
 
 #define LINUX_MACHTYPE_UNKNOWN 0
 
+typedef enum {
+	PMIC_VERSION_UNKNOWN = 0
+} PMIC_VERSION;
+
+typedef enum {
+	BOARD_ID_UNKNOWN = 0,
+	BOARD_ID_START = 1001,
+	BOARD_ID_MSM8X30_TYPE1 = BOARD_ID_START,
+	BOARD_ID_MSM8X30_TYPE2,
+	BOARD_ID_MSM8X30_TYPE3,
+	BOARD_ID_MSM8X30_TYPE4,
+	BOARD_ID_END
+} BOARD_ID;
+
+typedef enum {
+	ADC_UNKNOWN = 0
+} ADC;
+
 struct board_data {
-	uint32_t platform;
-	uint32_t platform_hw;
-	uint32_t platform_subtype;
-	uint32_t target;
+	uint32_t platform;         // cpu: msm8960
+	uint32_t platform_hw;      // MTP, CDP
+	uint32_t platform_subtype; // ?
+	uint32_t target;           // platform + hw, M8960_CDP
 	uint32_t baseband;
 	uint32_t pmic_type;
 	uint32_t pmic_version;
-	uint32_t qrd_tablet_hw_platform;
+	uint32_t id;
+	uint32_t adc;
 };
 
 void board_init();
@@ -52,9 +71,7 @@ uint32_t board_baseband();
 uint32_t board_hardware_id();
 uint32_t board_pmic_type();
 uint32_t board_pmic_ver();
-
-extern char qrd_tablet_hw_platform_adc_num_buf[6];
-extern int qrd_tablet_hw_platform_adc_num_tmp;
-
+uint32_t board_id();
+uint32_t board_adc();
 
 #endif
