@@ -133,8 +133,8 @@ struct smem_board_info_v7 {
 	unsigned pmic_version;
 //	unsigned buffer_align;	//Need for 8 bytes alignment while reading from shared memory.
 
-	unsigned qrd_tablet_hw_platform;
-	unsigned qrd_tablet_hw_platform_adc_num;
+	unsigned id;
+	unsigned adc; // board id by adc
 };
 
 typedef struct {
