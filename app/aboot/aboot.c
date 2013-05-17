@@ -63,6 +63,7 @@
 #include "board.h"
 
 #include "scm.h"
+#include "qrd_tablet_boot.h"
 
 #define EXPAND(NAME) #NAME
 #define TARGET(NAME) EXPAND(NAME)
@@ -140,6 +141,8 @@ struct atag_ptbl_entry
 
 char sn_buf[13];
 
+extern char qrd_tablet_hw_platform_adc_num_buf[6];
+
 extern int emmc_recovery_init(void);
 
 #if NO_KEYPAD_DRIVER
@@ -165,6 +168,11 @@ unsigned char *update_cmdline(const char * cmdline)
 	int have_cmdline = 0;
 	unsigned char *cmdline_final = NULL;
 	int pause_at_bootup = 0;
+
+        strcat(cmdline, " qrd_tablet_hw_adc=");
+        strcat(cmdline, qrd_tablet_hw_platform_adc_num_buf);
+
+	qrd_tablet_add_cmdline(cmdline);
 
 	if (cmdline && cmdline[0]) {
 		cmdline_len = strlen(cmdline);
