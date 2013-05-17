@@ -181,7 +181,7 @@ unsigned target_baseband()
 	return board_baseband();
 }
 
-static unsigned target_check_power_on_reason(void)
+unsigned target_check_power_on_reason(void)
 {
 	unsigned power_on_status = 0;
 	unsigned int status_len = sizeof(power_on_status);

@@ -76,6 +76,9 @@
 
 #define RECOVERY_MODE   0x77665502
 #define FASTBOOT_MODE   0x77665500
+#define REBOOT_TO_OS    0x77665501
+#define FASTBOOT_REBOOT_TO_OS 0x00000000
+#define PWR_ON_MODE_KEYPAD 0x01
 
 #if DEVICE_TREE
 #define DEV_TREE_SUCCESS        0
@@ -1486,6 +1489,31 @@ void aboot_init(const struct app_descriptor *app)
 	unsigned reboot_mode = 0;
 	unsigned usb_init = 0;
 	unsigned sz = 0;
+	unsigned count = 0;
+	uint8_t pwrkey = 0;
+
+	/*Wait until power on while holding the power key.(About 1500ms + 100ms * count)*/
+	reboot_mode = check_reboot_mode();
+	if (target_check_power_on_reason() == PWR_ON_MODE_KEYPAD
+		&& reboot_mode != RECOVERY_MODE
+		&& reboot_mode != FASTBOOT_MODE
+		&& reboot_mode != REBOOT_TO_OS
+		&& reboot_mode != FASTBOOT_REBOOT_TO_OS)
+	{
+		while (count < 5)
+		{
+			pm8921_pwrkey_status(&pwrkey);
+			if (pwrkey !=0 )
+			{
+				count++;
+			}
+			else
+			{
+				shutdown_device();
+			}
+			mdelay(100);
+		}
+	}
 
 	/* Setup page size information for nand/emmc reads */
 	if (target_is_emmc_boot())
