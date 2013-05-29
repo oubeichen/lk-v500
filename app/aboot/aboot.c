@@ -77,13 +77,13 @@
 
 #define RECOVERY_MODE   0x77665502
 #define FASTBOOT_MODE   0x77665500
+#define RESTART_MODE	0x77665501
 
 #if DEVICE_TREE
 #define DEV_TREE_SUCCESS        0
 #define DEV_TREE_MAGIC          "QCDT"
 #define DEV_TREE_VERSION        1
 #define DEV_TREE_HEADER_SIZE    12
-
 
 struct dt_entry{
 	uint32_t platform_id;
@@ -117,6 +117,9 @@ static const char *baseband_sglte   = " androidboot.baseband=sglte";
 static const char *baseband_dsda    = " androidboot.baseband=dsda";
 static const char *baseband_dsda2   = " androidboot.baseband=dsda2";
 static const char *baseband_sglte2  = " androidboot.baseband=sglte2";
+
+/* For the feature to shutdown device when short press power key booting.*/
+bool boot_pass = 0;
 
 /* Assuming unauthorized kernel image by default */
 static int auth_kernel_img = 0;
@@ -186,6 +189,7 @@ unsigned char *update_cmdline(const char * cmdline)
 	cmdline_len += strlen(sn_buf);
 
 	if (target_pause_for_battery_charge()) {
+		boot_pass = 1;
 		pause_at_bootup = 1;
 		cmdline_len += strlen(battchg_pause);
 	}
@@ -454,6 +458,11 @@ void boot_linux(void *kernel, unsigned *tags,
 		entry, ramdisk, ramdisk_size);
 
 	enter_critical_section();
+
+	if (!boot_pass){
+		power_key_boot();
+	}
+
 	/* do any platform specific cleanup before kernel entry */
 	platform_uninit();
 	arch_disable_cache(UCACHE);
@@ -1637,9 +1646,13 @@ void aboot_init(const struct app_descriptor *app)
 
 	reboot_mode = check_reboot_mode();
 	if (reboot_mode == RECOVERY_MODE) {
+		boot_pass = 1;
 		boot_into_recovery = 1;
 	} else if(reboot_mode == FASTBOOT_MODE) {
+		boot_pass = 1;
 		goto fastboot;
+	} else if(reboot_mode == RESTART_MODE) {
+		boot_pass = 1;
 	}
 
 	if (target_is_emmc_boot())
