@@ -50,10 +50,14 @@
 #include <board.h>
 #include <target/board.h>
 
+#define POWER_KEY_MODE	0x77665506
+
 extern void dmb(void);
 extern void msm8960_keypad_init(void);
 extern void msm8930_keypad_init(void);
 extern void panel_backlight_on(void);
+extern int  pm8921_pwrkey_status(uint8_t *is_pwrkey_pressed);
+extern bool boot_pass;
 
 static unsigned mmc_sdc_base[] =
     { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
@@ -194,6 +198,11 @@ static unsigned target_check_power_on_reason(void)
 		dprintf(CRITICAL,
 			"ERROR: unable to read shared memory for power on reason\n");
 	}
+
+	/* For the feature to shutdown device when short press power key booting.*/
+	if (power_on_status != 0x1)
+		boot_pass = 1;
+
 	dprintf(INFO, "Power on reason %u\n", power_on_status);
 	return power_on_status;
 }
@@ -228,6 +237,18 @@ unsigned check_reboot_mode(void)
 	//writel(0x00, RESTART_REASON_ADDR);
 
 	return restart_reason;
+}
+
+void power_key_boot(void)
+{
+	uint8_t detect_pwr_key = 0;
+
+	pm8921_pwrkey_status(&detect_pwr_key);
+	
+	if(!detect_pwr_key)
+		writel(POWER_KEY_MODE, RESTART_REASON_ADDR);
+
+	return ;
 }
 
 unsigned target_pause_for_battery_charge(void)
