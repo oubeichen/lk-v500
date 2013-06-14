@@ -46,4 +46,6 @@ unsigned target_pause_for_battery_charge(void);
 unsigned target_baseband(void);
 void target_serialno(unsigned char *buf);
 void target_fastboot_init(void);
+
+
 #endif
