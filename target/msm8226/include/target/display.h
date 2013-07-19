@@ -24,38 +24,21 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+#ifndef _TARGET_MSM8226_DISPLAY_H
+#define _TARGET_MSM8226_DISPLAY_H
 
-#include <stdlib.h>
-#include <reg.h>
-#include <dload_util.h>
+#define MIPI_FB_ADDR  0x0D200000
 
-#define NORMAL_DLOAD_COOKIE_0       0xE47B337D
-#define NORMAL_DLOAD_COOKIE_1       0xCE14091A
+#define MIPI_HSYNC_PULSE_WIDTH       12
+#define MIPI_HSYNC_BACK_PORCH_DCLK   32
+#define MIPI_HSYNC_FRONT_PORCH_DCLK  144
 
-#define EMERGENCY_DLOAD_COOKIE_0    0x322A4F99
-#define EMERGENCY_DLOAD_COOKIE_1    0xC67E4350
-#define EMERGENCY_DLOAD_COOKIE_2    0x77777777
+#define MIPI_VSYNC_PULSE_WIDTH       4
+#define MIPI_VSYNC_BACK_PORCH_LINES  3
+#define MIPI_VSYNC_FRONT_PORCH_LINES 9
 
-extern void dsb();
-
-void dload_util_write_cookie(uint32_t target_dload_mode_addr,
-		enum dload_mode mode)
-{
-	if (mode == NORMAL_DLOAD)
-	{
-		writel(NORMAL_DLOAD_COOKIE_0, target_dload_mode_addr);
-		writel(NORMAL_DLOAD_COOKIE_1,
-				target_dload_mode_addr + sizeof(uint32_t));
-	}
-	else
-	{
-		writel(EMERGENCY_DLOAD_COOKIE_0, target_dload_mode_addr);
-		writel(EMERGENCY_DLOAD_COOKIE_1,
-				target_dload_mode_addr + sizeof(uint32_t));
-		writel(EMERGENCY_DLOAD_COOKIE_2,
-				target_dload_mode_addr + 2 * sizeof(uint32_t));
-	}
-
-	dsb();
-}
+extern int mdss_dsi_phy_init(struct mipi_dsi_panel_config *, uint32_t ctl_base);
+extern int mdss_dsi_uniphy_pll_config(uint32_t ctl_base);
+#endif

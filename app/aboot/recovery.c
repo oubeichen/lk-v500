@@ -95,6 +95,7 @@ int set_recovery_message(const struct recovery_message *in)
 	unsigned offset = 0;
 	unsigned pagesize = flash_page_size();
 	unsigned n = 0;
+	void *scratch_addr = target_get_scratch_address();
 
 	ptable = flash_get_ptable();
 
@@ -111,15 +112,15 @@ int set_recovery_message(const struct recovery_message *in)
 
 	n = pagesize * (MISC_COMMAND_PAGE + 1);
 
-	if (flash_read(ptn, offset, (void *) SCRATCH_ADDR, n)) {
+	if (flash_read(ptn, offset, scratch_addr, n)) {
 		dprintf(CRITICAL, "ERROR: Cannot read recovery_header\n");
 		return -1;
 	}
 
 	offset += (pagesize * MISC_COMMAND_PAGE);
-	offset += SCRATCH_ADDR;
+	offset += (unsigned) scratch_addr;
 	memcpy((void *) offset, in, sizeof(*in));
-	if (flash_write(ptn, 0, (void *)SCRATCH_ADDR, n)) {
+	if (flash_write(ptn, 0, scratch_addr, n)) {
 		dprintf(CRITICAL, "ERROR: flash write fail!\n");
 		return -1;
 	}
@@ -165,6 +166,7 @@ int update_firmware_image (struct update_header *header, char *name)
 	unsigned pagesize = flash_page_size();
 	unsigned pagemask = pagesize -1;
 	unsigned n = 0;
+	void *scratch_addr = target_get_scratch_address();
 
 	ptable = flash_get_ptable();
 	if (ptable == NULL) {
@@ -181,7 +183,7 @@ int update_firmware_image (struct update_header *header, char *name)
 	offset += header->image_offset;
 	n = (header->image_length + pagemask) & (~pagemask);
 
-	if (flash_read(ptn, offset, (void *) SCRATCH_ADDR, n)) {
+	if (flash_read(ptn, offset, scratch_addr, n)) {
 		dprintf(CRITICAL, "ERROR: Cannot read radio image\n");
 		return -1;
 	}
@@ -192,7 +194,7 @@ int update_firmware_image (struct update_header *header, char *name)
 		return -1;
 	}
 
-	if (flash_write(ptn, 0, (void *) SCRATCH_ADDR, n)) {
+	if (flash_write(ptn, 0, scratch_addr, n)) {
 		dprintf(CRITICAL, "ERROR: flash write fail!\n");
 		return -1;
 	}
@@ -487,12 +489,6 @@ static int read_misc(unsigned page_offset, void *buf, unsigned size)
 
 	offset = page_offset * pagesize;
 
-	if (size & (pagesize - 1))
-	{
-		dprintf(CRITICAL, "Buffer space is insufficient.\n");
-		return -1;
-	}
-
 	if (target_is_emmc_boot())
 	{
 		int index;
@@ -614,32 +610,52 @@ int write_misc(unsigned page_offset, void *buf, unsigned size)
 	return 0;
 }
 
-bool get_ffbm(char *ffbm, unsigned size)
+int get_ffbm(char *ffbm, unsigned size)
 {
 	const char *ffbm_cmd = "ffbm-";
-	const unsigned ffbm_submode_size = 2;
 	uint32_t page_size = get_page_size();
-	void *scratch = target_get_scratch_address();
-
-	if (!target_is_emmc_boot())
+	char *ffbm_page_buffer = NULL;
+	int retval = 0;
+	if (size < FFBM_MODE_BUF_SIZE || size >= page_size)
 	{
-		dprintf(CRITICAL, "get_ffbm not supported for device");
-		ASSERT(0);
+		dprintf(CRITICAL, "Invalid size argument passed to get_ffbm\n");
+		retval = -1;
+		goto cleanup;
 	}
-	if (size < FFBM_MODE_BUF_SIZE)
+	ffbm_page_buffer = (char*)malloc(page_size);
+	if (!ffbm_page_buffer)
 	{
-		dprintf(CRITICAL, "Buffer too short to get FFBM string\n");
-		return false;
+		dprintf(CRITICAL, "Failed to alloc buffer for ffbm cookie\n");
+		retval = -1;
+		goto cleanup;
 	}
-	if (read_misc(0, scratch, page_size))
+	if (read_misc(0, ffbm_page_buffer, page_size))
 	{
 		dprintf(CRITICAL, "Error reading MISC partition\n");
-		return false;
+		retval = -1;
+		goto cleanup;
 	}
-	strlcpy(ffbm, scratch, size);
-	if (!strncmp(ffbm, ffbm_cmd, strlen(ffbm_cmd)))
-		return true;
-	return false;
+	ffbm_page_buffer[size] = '\0';
+	if (strncmp(ffbm_cmd, ffbm_page_buffer, strlen(ffbm_cmd)))
+	{
+		retval = 0;
+		goto cleanup;
+	}
+	else
+	{
+		if (strlcpy(ffbm, ffbm_page_buffer, size) <
+				FFBM_MODE_BUF_SIZE -1)
+		{
+			dprintf(CRITICAL, "Invalid string in misc partition\n");
+			retval = -1;
+		}
+		else
+			retval = 1;
+	}
+cleanup:
+	if(ffbm_page_buffer)
+		free(ffbm_page_buffer);
+	return retval;
 }
 
 

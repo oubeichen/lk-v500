@@ -41,10 +41,10 @@
 #define SYSTEM_IMEM_BASE            0xFE800000
 #define MSM_SHARED_IMEM_BASE        0xFE805000
 
-#define RESTART_REASON_ADDR         (RPM_MSG_RAM_BASE     + 0x65C)
-#define RESTART_REASON_ADDR_V2      (MSM_SHARED_IMEM_BASE + 0x65C)
-
-#define FORCE_DLOAD_MODE_ADDR_V2    (MSM_SHARED_IMEM_BASE + 0xFE0)
+#define RESTART_REASON_ADDR             (RPM_MSG_RAM_BASE     + 0x65C)
+#define RESTART_REASON_ADDR_V2          (MSM_SHARED_IMEM_BASE + 0x65C)
+#define DLOAD_MODE_ADDR_V2              (MSM_SHARED_IMEM_BASE + 0x0)
+#define EMERGENCY_DLOAD_MODE_ADDR_V2    (MSM_SHARED_IMEM_BASE + 0xFE0)
 
 #define KPSS_BASE                   0xF9000000
 
@@ -167,6 +167,8 @@
 #define MSM_MMSS_CLK_CTL_BASE       0xFD8C0000
 
 #define MIPI_DSI_BASE               (0xFD922800)
+#define MIPI_DSI0_BASE              (MIPI_DSI_BASE)
+#define MIPI_DSI1_BASE              (0xFD922E00)
 #define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
 
 #define MDP_BASE                    (0xfd900000)

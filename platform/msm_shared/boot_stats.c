@@ -9,7 +9,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of The Linux Foundation nor the names of its
+ *   * Neither the name of The Linux Foundation. nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -26,17 +26,41 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __DLOAD_UTIL_H
-#define __DLOAD_UTIL_H
+#include <boot_stats.h>
+#include <debug.h>
+#include <reg.h>
+#include <platform/iomap.h>
 
-#include <sys/types.h>
+static uint32_t kernel_load_start;
+void bs_set_timestamp(enum bs_entry bs_id)
+{
+	addr_t bs_imem = get_bs_info_addr();
+	uint32_t clk_count = 0;
 
-enum dload_mode {
-	NORMAL_DLOAD,
-	EMERGENCY_DLOAD
-};
+	if(bs_imem) {
+		if (bs_id >= BS_MAX) {
+			dprintf(CRITICAL, "bad bs id: %u, max: %u\n", bs_id, BS_MAX);
+			ASSERT(0);
+		}
 
-void dload_util_write_cookie(uint32_t target_dload_mode_addr,
-		enum dload_mode mode);
+		if (bs_id == BS_KERNEL_LOAD_START) {
+			kernel_load_start = platform_get_sclk_count();
+			return;
+		}
 
-#endif
+		if(bs_id == BS_KERNEL_LOAD_DONE){
+			clk_count = platform_get_sclk_count();
+			if(clk_count){
+				writel(clk_count - kernel_load_start,
+					bs_imem + (sizeof(uint32_t) * BS_KERNEL_LOAD_TIME));
+			}
+		}
+		else{
+			clk_count = platform_get_sclk_count();
+			if(clk_count){
+				writel(clk_count,
+					bs_imem + (sizeof(uint32_t) * bs_id));
+			}
+		}
+	}
+}

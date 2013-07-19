@@ -174,6 +174,13 @@ void target_init(void)
 
 	target_keystatus();
 
+	/* Display splash screen if enabled */
+#if DISPLAY_SPLASH_SCREEN
+	dprintf(SPEW, "Display Init: Start\n");
+	display_init();
+	dprintf(SPEW, "Display Init: Done\n");
+#endif
+
 	target_sdc_init();
 
 	if (target_use_signed_kernel())
@@ -221,7 +228,13 @@ void target_baseband_detect(struct board_data *board)
 	case MSM8826:
 	case MSM8626:
 	case MSM8226:
+	case MSM8926:
+	case MSM8126:
+	case MSM8326:
 		board->baseband = BASEBAND_MSM;
+		break;
+	case APQ8026:
+		board->baseband = BASEBAND_APQ;
 		break;
 	default:
 		dprintf(CRITICAL, "Platform type: %u is not supported\n", platform);
@@ -280,6 +293,11 @@ void target_usb_stop(void)
 	ulpi_write(ULPI_MISC_A_VBUSVLDEXTSEL | ULPI_MISC_A_VBUSVLDEXT, ULPI_MISC_A_CLEAR);
 }
 
+void target_uninit(void)
+{
+	mmc_put_card_to_sleep(dev);
+}
+
 void target_usb_init(void)
 {
 	uint32_t val;
@@ -295,6 +313,23 @@ void target_usb_init(void)
 	val = readl(USB_USBCMD);
 	val |= SESS_VLD_CTRL;
 	writel(val, USB_USBCMD);
+}
+
+/* Returns 1 if target supports continuous splash screen. */
+int target_cont_splash_screen()
+{
+	switch(board_hardware_id())
+	{
+		case HW_PLATFORM_MTP:
+		case HW_PLATFORM_QRD:
+		case HW_PLATFORM_SURF:
+			dprintf(SPEW, "Target_cont_splash=1\n");
+			return 1;
+			break;
+		default:
+			dprintf(SPEW, "Target_cont_splash=0\n");
+			return 0;
+	}
 }
 
 unsigned target_pause_for_battery_charge(void)
@@ -322,9 +357,10 @@ int emmc_recovery_init(void)
 	return _emmc_recovery_init();
 }
 
-int set_download_mode(void)
+int set_download_mode(enum dload_mode mode)
 {
-	dload_util_write_cookie(FORCE_DLOAD_MODE_ADDR);
+	dload_util_write_cookie(mode == NORMAL_DLOAD ?
+		DLOAD_MODE_ADDR : EMERGENCY_DLOAD_MODE_ADDR, mode);
 
 	return 0;
 }

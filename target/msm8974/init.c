@@ -160,6 +160,12 @@ void target_crypto_init_params()
 	ce_params.read_fifo_size   = CE_FIFO_SIZE;
 	ce_params.write_fifo_size  = CE_FIFO_SIZE;
 
+	/* BAM is initialized by TZ for this platform.
+	 * Do not do it again as the initialization address space
+	 * is locked.
+	 */
+	ce_params.do_bam_init      = 0;
+
 	crypto_init_params(&ce_params);
 }
 
@@ -209,6 +215,14 @@ static target_mmc_sdhci_init()
 			dprintf(CRITICAL, "mmc init failed!");
 			ASSERT(0);
 		}
+	}
+
+	/*
+	 * MMC initialization is complete, read the partition table info
+	 */
+	if (partition_read_table()) {
+		dprintf(CRITICAL, "Error reading the partition table info\n");
+		ASSERT(0);
 	}
 }
 
@@ -301,14 +315,6 @@ void target_init(void)
 #else
 	target_mmc_mci_init();
 #endif
-
-	/*
-	 * MMC initialization is complete, read the partition table info
-	 */
-	if (partition_read_table()) {
-		dprintf(CRITICAL, "Error reading the partition table info\n");
-		ASSERT(0);
-	}
 }
 
 unsigned board_machtype(void)
@@ -482,9 +488,10 @@ void reboot_device(unsigned reboot_reason)
 	dprintf(CRITICAL, "Rebooting failed\n");
 }
 
-int set_download_mode(void)
+int set_download_mode(enum dload_mode mode)
 {
-	dload_util_write_cookie(FORCE_DLOAD_MODE_ADDR_V2);
+	dload_util_write_cookie(mode == NORMAL_DLOAD ?
+		DLOAD_MODE_ADDR_V2 : EMERGENCY_DLOAD_MODE_ADDR_V2, mode);
 
 	return 0;
 }
@@ -550,8 +557,13 @@ unsigned target_pause_for_battery_charge(void)
 	return 0;
 }
 
-void target_usb_stop(void)
+void target_uninit(void)
 {
+#if MMC_SDHCI_SUPPORT
+	mmc_put_card_to_sleep(dev);
+#else
+	mmc_put_card_to_sleep();
+#endif
 #ifdef SSD_ENABLE
 	clock_ce_disable(SSD_CE_INSTANCE_1);
 #endif
