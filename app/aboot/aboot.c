@@ -75,6 +75,7 @@
 #endif
 
 #define RECOVERY_MODE   0x77665502
+#define RESTART_MODE    0x77665501
 #define FASTBOOT_MODE   0x77665500
 
 #if DEVICE_TREE
@@ -1421,7 +1422,7 @@ void cmd_reboot(const char *arg, void *data, unsigned sz)
 {
 	dprintf(INFO, "rebooting the device\n");
 	fastboot_okay("");
-	reboot_device(0);
+	reboot_device(RESTART_MODE);
 }
 
 void cmd_reboot_bootloader(const char *arg, void *data, unsigned sz)
